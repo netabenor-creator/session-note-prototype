@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Session Note Prototype (Fresh Modal + Autosave)</title>
+    <style>
+      :root{
+        --teal: #0E7A95;
+        --teal-hover: #0b6a82;
+        --text: #233043;
+        --muted: #6b7a90;
+        --border: #d9dee7;
+        --panel-border: #cfd6e3;
+        --overlay: rgba(30, 41, 59, 0.22);
+        --shadow: 0 18px 60px rgba(16, 24, 40, 0.22);
+        --radius-lg: 18px;
+        --radius-md: 12px;
+        --radius-sm: 10px;
+      }
+
+      html, body {
+        height: 100%;
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+        color: var(--text);
+        background: #eef2f6;
+      }
+
+      /* Simple “portal page” mock so it feels like a real UI behind the modal */
+      .page {
+        min-height: 100%;
+        padding: 28px;
+        background:
+          radial-gradient(900px 280px at 85% 12%, rgba(14,122,149,0.18), transparent 58%),
+          radial-gradient(700px 260px at 15% 70%, rgba(14,122,149,0.10), transparent 60%),
+          linear-gradient(180deg, #f4f7fb, #eef2f6);
+      }
+
+      .page-card {
+        max-width: 980px;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: 14px;
+        border: 1px solid rgba(207, 214, 227, 0.9);
+        box-shadow: 0 12px 40px rgba(16, 24, 40, 0.06);
+        padding: 18px 18px;
+      }
+
+      .page-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .page-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+        color: #263244;
+      }
+
+      .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        border: 0;
+        background: var(--teal);
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 6px 18px rgba(14, 122, 149, 0.20);
+      }
+      .btn-primary:hover { background: var(--teal-hover); }
+      .btn-primary:active { transform: translateY(1px); }
+
+      .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1px solid rgba(14, 122, 149, 0.30);
+        background: rgba(14, 122, 149, 0.08);
+        color: var(--teal);
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .btn-secondary:hover {
+        background: rgba(14, 122, 149, 0.12);
+        border-color: rgba(14, 122, 149, 0.45);
+      }
+
+      /* Modal */
+      .overlay {
+        position: fixed;
+        inset: 0;
+        background: var(--overlay);
+        display: grid;
+        place-items: center;
+        padding: 28px;
+        z-index: 9999;
+      }
+
+      .modal {
+        width: 980px;
+        max-width: 100%;
+        background: #fff;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        border: 1px solid rgba(207, 214, 227, 0.8);
+        overflow: hidden;
+      }
+
+      .modal-header {
+        position: relative;
+        height: 72px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: 1px solid var(--border);
+        background: #fff;
+      }
+
+      .modal-title {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 650;
+        letter-spacing: 0.2px;
+      }
+
+      .x-btn {
+        position: absolute;
+        right: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        border: 1px solid transparent;
+        background: transparent;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+      }
+      .x-btn:hover {
+        background: #f2f5fa;
+        border-color: var(--border);
+      }
+      .x-btn svg { width: 18px; height: 18px; color: #2f3d52; }
+
+      .modal-body {
+        padding: 18px 26px 18px;
+        background: #fff;
+      }
+
+      /* top toolbar */
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 2px 0 14px;
+      }
+
+      .format {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .format-label {
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .radio {
+        font-size: 13px;
+        color: var(--text);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        user-select: none;
+      }
+      .radio input { transform: translateY(1px); }
+
+      .panel {
+        border: 2px solid var(--panel-border);
+        border-radius: var(--radius-md);
+        background: #fff;
+        padding: 16px 16px 14px;
+      }
+      .panel + .panel { margin-top: 16px; }
+
+      .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+
+      .panel-title-lg {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+        color: #2a374b;
+      }
+
+      .panel-title-sm {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 650;
+        color: #2a374b;
+      }
+
+      .summary-scroll {
+        border: 1px solid #d8dee9;
+        border-radius: var(--radius-sm);
+        background: #fff;
+        max-height: 420px;
+        overflow: auto;
+        padding: 14px;
+        box-sizing: border-box;
+      }
+
+      .summary-scroll::-webkit-scrollbar { width: 10px; }
+      .summary-scroll::-webkit-scrollbar-track { background: #eef2f6; border-radius: 10px; }
+      .summary-scroll::-webkit-scrollbar-thumb { background: #2f3d52; border-radius: 10px; }
+      .summary-scroll::-webkit-scrollbar-thumb:hover { background: #233043; }
+
+      .summary-text {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        line-height: 1.35;
+        font-size: 14px;
+      }
+
+      .comments-area {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        min-height: 140px;
+        resize: vertical;
+        border: 1px solid #d8dee9;
+        border-radius: var(--radius-sm);
+        padding: 12px;
+        font-size: 14px;
+        line-height: 1.35;
+        outline: none;
+        background: #fff;
+      }
+      .comments-area:focus {
+        border-color: rgba(14, 122, 149, 0.6);
+        box-shadow: 0 0 0 4px rgba(14, 122, 149, 0.12);
+      }
+
+      .hint {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .copy-small {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(14, 122, 149, 0.30);
+        background: rgba(14, 122, 149, 0.08);
+        color: var(--teal);
+        font-size: 13px;
+        font-weight: 650;
+        cursor: pointer;
+        user-select: none;
+      }
+      .copy-small:hover {
+        background: rgba(14, 122, 149, 0.12);
+        border-color: rgba(14, 122, 149, 0.45);
+      }
+      .copy-small:active { transform: translateY(1px); }
+      .copy-small[disabled] { opacity: 0.5; cursor: not-allowed; transform: none; }
+      .copy-small svg { width: 16px; height: 16px; }
+
+      .sn-right{
+        display:flex;
+        align-items:center;
+        gap:10px;
+      }
+
+      .save-status{
+        font-size: 12px;
+        color: var(--muted);
+        min-width: 110px;
+        text-align: right;
+      }
+      .save-status.is-saving{ color: var(--muted); }
+      .save-status.is-saved{ color: var(--teal); }
+      .save-status.is-error{ color: #b42318; }
+
+      .modal-footer {
+        padding: 22px 26px 28px;
+        display: flex;
+        justify-content: center;
+        background: #fff;
+      }
+
+      @media (max-width: 900px) {
+        .modal-body, .modal-footer { padding-left: 16px; padding-right: 16px; }
+        .panel-title-lg { font-size: 18px; }
+        .save-status { min-width: 0; text-align: left; }
+        .toolbar { flex-direction: column; align-items: flex-start; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="page">
+      <div class="page-card">
+        <div class="page-row">
+          <h1 class="page-title">Portal page mock</h1>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn-primary" type="button" id="openSessionNoteBtn">
+              Open Session Note <span aria-hidden="true">›</span>
+            </button>
+            <button class="btn-secondary" type="button" id="clearDraftBtn">
+              Clear saved draft (prototype)
+            </button>
+          </div>
+        </div>
+        <p style="margin:12px 0 0; color:#6b7a90; font-size:13px;">
+          This prototype simulates your portal behavior: the modal is created fresh each time you open it, but the Additional Comments draft persists and shows Saved status.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        // Prototype persistence key. In Rails, this becomes DB persistence keyed by session/patient.
+        const STORAGE_KEY = "session_note_additional_comments_draft_v1";
+
+        // -------- Helpers --------
+        function debounce(fn, waitMs) {
+          let t = null;
+          return (...args) => {
+            window.clearTimeout(t);
+            t = window.setTimeout(() => fn(...args), waitMs);
+          };
+        }
+
+        function nowTime() {
+          const d = new Date();
+          return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        }
+
+        function setSaveStatus(el, state, text) {
+          el.classList.remove("is-saving", "is-saved", "is-error");
+          if (state) el.classList.add(state);
+          el.textContent = text;
+        }
+
+        function applyFormat(text, mode) {
+          if (!text) return "";
+          if (mode === "asis") return text.trim();
+
+          // EMR-friendly normalization:
+          // - normalize CRLF
+          // - trim trailing spaces per line
+          // - collapse 3+ blank lines to 2
+          // - trim outer whitespace
+          const normalized = text
+            .replace(/\r\n/g, "\n")
+            .split("\n")
+            .map((line) => line.replace(/[ \t]+$/g, ""))
+            .join("\n")
+            .replace(/\n{3,}/g, "\n\n")
+            .trim();
+
+          return normalized;
+        }
+
+        async function copyText(text) {
+          const cleaned = (text || "").trim();
+          if (!cleaned) return false;
+
+          try {
+            await navigator.clipboard.writeText(cleaned);
+            return true;
+          } catch (e) {
+            // Fallback (no logging)
+            const ta = document.createElement("textarea");
+            ta.value = cleaned;
+            ta.setAttribute("readonly", "");
+            ta.style.position = "absolute";
+            ta.style.left = "-9999px";
+            document.body.appendChild(ta);
+            ta.select();
+            const ok = document.execCommand("copy");
+            document.body.removeChild(ta);
+            return ok;
+          }
+        }
+
+        function setCopiedState(button, reenableFn) {
+          const original = button.textContent.trim();
+          button.dataset.originalLabel = button.dataset.originalLabel || original;
+
+          button.textContent = "Copied";
+          button.disabled = true;
+
+          window.setTimeout(() => {
+            button.textContent = button.dataset.originalLabel;
+            if (typeof reenableFn === "function") reenableFn();
+            else button.disabled = false;
+          }, 2000);
+        }
+
+        // -------- Modal Template (created fresh on each open) --------
+        function modalHtml() {
+          return `
+            <div class="overlay" role="dialog" aria-modal="true" aria-labelledby="session-note-title">
+              <div class="modal">
+                <div class="modal-header">
+                  <h2 id="session-note-title" class="modal-title">Session Note</h2>
+
+                  <button type="button" class="x-btn" aria-label="Close" data-close>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div class="modal-body">
+                  <div class="toolbar">
+                    <div class="format" role="group" aria-label="Copy format toggle">
+                      <span class="format-label">Copy format:</span>
+                      <label class="radio">
+                        <input type="radio" name="copy_format" value="asis" checked data-format="asis" />
+                        As-is
+                      </label>
+                      <label class="radio">
+                        <input type="radio" name="copy_format" value="formatted" data-format="formatted" />
+                        Formatted
+                      </label>
+                    </div>
+
+                    <!-- Copy both is an alternative action, not replacing per-section copy buttons -->
+                    <button type="button" class="copy-small" data-copy-button="both" disabled>
+                      Copy both
+                    </button>
+                  </div>
+
+                  <div class="panel">
+                    <div class="panel-header">
+                      <h3 class="panel-title-lg">Session Summary</h3>
+
+                      <button type="button" class="copy-small" data-copy-button="summary" aria-label="Copy session summary">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path
+                            d="M8 7V6a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                          />
+                          <path
+                            d="M7 20h7a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2Z"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                          />
+                        </svg>
+                        Copy
+                      </button>
+                    </div>
+
+                    <div class="summary-scroll" data-copy-source="summary">
+                      <pre class="summary-text">Session Summary
+Patient Details
+Patient ID: dementia test 6 task
+
+Date of Birth: 1950/01/01
+
+Comparative Group: Males, 75+
+
+Assessment Details
+Date Administered: 2025/04/30
+
+Date Completed: 2025/04/30
+
+Duration: 12 minutes
+
+Administration Method: In Person
+
+Provider Details
+Provider Name: neta.benor+general@creyos.com
+
+Organization: Neta General Customer Test
+
+Assessments Administered
+MCI-Focused Protocol
+Attention
+Episodic Memory
+Response Inhibition
+Visual Spatial Working Memory
+Mental Rotation
+Verbal Short-Term Memory
+Self-Reported Informant Questionnaire on Cognitive Decline in the Elderly
+Patient Health Questionnaire (PHQ-9)
+General Anxiety Disorder (GAD-7)
+Instrumental Activities of Daily Living (IADL)
+MCI-Focused Protocol
+Summary
+Objective cognitive impairment detected and functional dependency reported
+Neurocognitive Assessment Outcome
+Objective impairment detected
+Functional Dependence Outcome
+Functional dependency reported
+Subjective Cognitive Decline Outcome
+No subjective cognitive decline reported
+Neuropsychiatric Assessment Outcome
+Anxiety and Depression symptoms reported
+Cognitive Assessment Results
+Below Average Range
+Attention - Standard score of 72, 3rd percentile, below the average range.
+Episodic Memory - Standard score of 62, 0th percentile, below the average range.
+Response Inhibition - Standard score of 84, 15th percentile, below the average range.
+Visual Spatial Working Memory - Standard score of 57, 0th percentile, below the average range.
+Mental Rotation - Standard score of 83, 13th percentile, below the average range.
+Verbal Short Term Memory - Standard score of 54, 0th percentile, below the average range.
+Questionnaire Results
+Self-Reported Informant Questionnaire on Cognitive Decline in the Elderly - Averaged score of 2.94 was recorded, which is below the threshold of 3.22. This score is not indicative of subjective cognitive decline
+Patient Health Questionnaire (PHQ-9) - Score of 17 was recorded, which meets the threshold of 15. This score is indicative of moderately severe depression symptoms
+General Anxiety Disorder (GAD-7) - Score of 10 was recorded, which meets the threshold of 10. This score is indicative of moderate anxiety symptoms
+Instrumental Activities of Daily Living (IADL) - Score of 3 was recorded, which is below the threshold of 5. This score is indicative of low function, dependence</pre>
+                    </div>
+
+                    <div class="hint">Copy copies only the session summary text.</div>
+                  </div>
+
+                  <div class="panel">
+                    <div class="panel-header">
+                      <h3 class="panel-title-sm">Additional Comments</h3>
+
+                      <div class="sn-right">
+                        <span class="save-status" data-save-status>Not saved yet</span>
+
+                        <button
+                          type="button"
+                          class="copy-small"
+                          data-copy-button="comments"
+                          aria-label="Copy additional comments"
+                          disabled
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path
+                              d="M8 7V6a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                            />
+                            <path
+                              d="M7 20h7a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2Z"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                            />
+                          </svg>
+                          Copy
+                        </button>
+                      </div>
+                    </div>
+
+                    <textarea
+                      class="comments-area"
+                      rows="4"
+                      placeholder="Add any additional context you’d like to copy into notes…"
+                      data-comments-input
+                    ></textarea>
+
+                    <div class="hint">Autosaves as you type. Reopening the modal shows the last saved draft.</div>
+                  </div>
+                </div>
+
+                <div class="modal-footer">
+                  <button type="button" class="btn-primary" data-close>
+                    Close <span aria-hidden="true">›</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        function getCopyMode(modalRoot) {
+          const formatted = modalRoot.querySelector('input[name="copy_format"][value="formatted"]');
+          return formatted && formatted.checked ? "formatted" : "asis";
+        }
+
+        // -------- Wire modal behavior (called each time we create a fresh modal) --------
+        function wireModal(modalRoot) {
+          const overlay = modalRoot.querySelector(".overlay");
+          const closeButtons = modalRoot.querySelectorAll("[data-close]");
+
+          const summarySource = modalRoot.querySelector('[data-copy-source="summary"]');
+          const commentsInput = modalRoot.querySelector("[data-comments-input]");
+          const statusEl = modalRoot.querySelector("[data-save-status]");
+
+          const summaryBtn = modalRoot.querySelector('[data-copy-button="summary"]');
+          const commentsBtn = modalRoot.querySelector('[data-copy-button="comments"]');
+          const bothBtn = modalRoot.querySelector('[data-copy-button="both"]');
+
+          function summaryText() {
+            return (summarySource?.innerText || "").trim();
+          }
+
+          function commentsTextTrimmed() {
+            return (commentsInput?.value || "").trim();
+          }
+
+          function syncButtons() {
+            const hasComments = commentsTextTrimmed().length > 0;
+            if (commentsBtn) commentsBtn.disabled = !hasComments;
+            if (bothBtn) bothBtn.disabled = !hasComments; // alternative action; meaningful when comments exists
+          }
+
+          // Close removes the modal from DOM (simulates portal re-render next time)
+          function close() {
+            overlay?.remove();
+          }
+
+          closeButtons.forEach((btn) => btn.addEventListener("click", close));
+
+          // Restore last draft on open (Option A: restore even if empty)
+          if (commentsInput && statusEl) {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved !== null) {
+              commentsInput.value = saved; // can be ""
+              setSaveStatus(statusEl, "is-saved", `Saved ✓ ${nowTime()}`);
+            } else {
+              setSaveStatus(statusEl, "", "Not saved yet");
+            }
+          }
+
+          // Autosave (save empty too)
+          const saveDraft = debounce(() => {
+            if (!commentsInput || !statusEl) return;
+            try {
+              localStorage.setItem(STORAGE_KEY, commentsInput.value); // can be ""
+              setSaveStatus(statusEl, "is-saved", `Saved ✓ ${nowTime()}`);
+            } catch (e) {
+              setSaveStatus(statusEl, "is-error", "Not saved");
+            }
+          }, 350);
+
+          if (commentsInput && statusEl) {
+            commentsInput.addEventListener("input", () => {
+              setSaveStatus(statusEl, "is-saving", "Saving…");
+              saveDraft();
+              syncButtons();
+            });
+          }
+
+          // Initial button state after restore
+          syncButtons();
+
+          // Copy Summary
+          if (summaryBtn && summarySource) {
+            summaryBtn.addEventListener("click", async (e) => {
+              const mode = getCopyMode(modalRoot);
+              const ok = await copyText(applyFormat(summaryText(), mode));
+              if (ok) setCopiedState(e.currentTarget);
+            });
+          }
+
+          // Copy Comments
+          if (commentsBtn && commentsInput) {
+            commentsBtn.addEventListener("click", async (e) => {
+              const mode = getCopyMode(modalRoot);
+              const ok = await copyText(applyFormat(commentsInput.value, mode));
+              if (ok) setCopiedState(e.currentTarget, syncButtons);
+            });
+          }
+
+          // Copy both (alternative)
+          if (bothBtn && commentsInput) {
+            bothBtn.addEventListener("click", async (e) => {
+              const mode = getCopyMode(modalRoot);
+              const combined = `${summaryText()}\n\nAdditional Comments\n${commentsInput.value || ""}`;
+              const ok = await copyText(applyFormat(combined, mode));
+              if (ok) setCopiedState(e.currentTarget, syncButtons);
+            });
+          }
+
+          // Optional UX: Esc closes modal
+          const onKeyDown = (ev) => {
+            if (ev.key === "Escape") close();
+          };
+          window.addEventListener("keydown", onKeyDown, { once: true });
+        }
+
+        // -------- Open modal fresh each time --------
+        function openModalFresh() {
+          // Ensure any existing modal is removed (fresh render)
+          document.querySelectorAll(".overlay").forEach((el) => el.remove());
+
+          // Create new modal DOM
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = modalHtml();
+          document.body.appendChild(wrapper);
+
+          // Wire behavior
+          wireModal(wrapper);
+
+          // Focus textarea to mimic a “ready to type” clinical flow
+          const textarea = wrapper.querySelector("[data-comments-input]");
+          if (textarea) textarea.focus();
+        }
+
+        // -------- Page buttons --------
+        document.getElementById("openSessionNoteBtn")?.addEventListener("click", openModalFresh);
+
+        document.getElementById("clearDraftBtn")?.addEventListener("click", () => {
+          localStorage.removeItem(STORAGE_KEY);
+          alert("Saved draft cleared (prototype). Open Session Note again to see it blank.");
+        });
+
+      })();
+    </script>
+  </body>
+</html>
