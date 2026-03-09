@@ -9,14 +9,15 @@
         --teal: #0e7a95;
         --teal-hover: #0b6a82;
         --teal-dark: #095c70;
-        --text: #233043;
+        --text: #101828;
+        --heading: #3f4b6b;
         --muted: #6b7a90;
         --border: #d9dee7;
-        --panel-border: #cfd6e3;
-        --overlay: rgba(30, 41, 59, 0.22);
-        --shadow: 0 18px 60px rgba(16, 24, 40, 0.22);
-        --radius-lg: 18px;
-        --radius-md: 12px;
+        --panel-border: #d4dbe6;
+        --overlay: rgba(30, 41, 59, 0.25);
+        --shadow: 0 20px 60px rgba(16, 24, 40, 0.16);
+        --radius-lg: 14px;
+        --radius-md: 10px;
         --radius-sm: 10px;
         --font-ui: "Proxima Nova", "proxima-nova", "Avenir Next", "Segoe UI", Arial, sans-serif;
       }
@@ -30,23 +31,43 @@
         background: #eef2f6;
       }
 
+      * {
+        box-sizing: border-box;
+      }
+
       .page {
         min-height: 100%;
-        padding: 28px;
+        padding: clamp(16px, 3vw, 28px);
         background:
           radial-gradient(900px 280px at 85% 12%, rgba(14, 122, 149, 0.18), transparent 58%),
           radial-gradient(700px 260px at 15% 70%, rgba(14, 122, 149, 0.10), transparent 60%),
           linear-gradient(180deg, #f4f7fb, #eef2f6);
       }
 
-      .page-card {
-        max-width: 980px;
+      .page-card,
+      .notes-card {
+        width: min(980px, 100%);
         margin: 0 auto;
         background: #fff;
         border-radius: 14px;
         border: 1px solid rgba(207, 214, 227, 0.9);
         box-shadow: 0 12px 40px rgba(16, 24, 40, 0.06);
-        padding: 18px;
+        padding: clamp(14px, 2vw, 18px);
+      }
+
+      .notes-card {
+        margin-top: 24px;
+        font-size: 14px;
+      }
+
+      .notes-card h3 {
+        margin: 0 0 10px 0;
+        font-size: 16px;
+      }
+
+      .notes-card p,
+      .notes-card li {
+        line-height: 1.45;
       }
 
       .page-row {
@@ -54,6 +75,7 @@
         align-items: center;
         justify-content: space-between;
         gap: 12px;
+        flex-wrap: wrap;
       }
 
       .page-title {
@@ -139,132 +161,152 @@
         position: fixed;
         inset: 0;
         background: var(--overlay);
+        backdrop-filter: blur(6px);
         display: grid;
         place-items: center;
-        padding: 28px;
+        padding: clamp(12px, 3vw, 28px);
         z-index: 9999;
       }
 
       .modal {
-        width: 980px;
-        max-width: 100%;
+        width: min(1100px, 100%);
+        height: min(88vh, 820px);
         background: #fff;
         border-radius: var(--radius-lg);
         box-shadow: var(--shadow);
-        border: 1px solid rgba(207, 214, 227, 0.8);
+        border: 1px solid rgba(207, 214, 227, 0.75);
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
       }
 
       .modal-header {
         position: relative;
-        height: 84px;
+        min-height: 92px;
+        padding: 0 72px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-bottom: 1px solid var(--border);
+        border-bottom: 1px solid #d9dee7;
         background: #fff;
+        flex-shrink: 0;
       }
 
       .modal-title {
         margin: 0;
-        font-size: 24px;
+        font-size: 23px;
         font-weight: 700;
-        color: #233043;
+        letter-spacing: -0.01em;
+        line-height: 1;
+        color: #2f3d5c;
+        text-align: center;
       }
 
       .x-btn {
         position: absolute;
-        right: 18px;
+        right: 24px;
         top: 50%;
         transform: translateY(-50%);
-        width: 44px;
-        height: 44px;
-        border-radius: 14px;
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
         border: 1px solid transparent;
         background: transparent;
         cursor: pointer;
         display: grid;
         place-items: center;
+        padding: 0;
       }
 
       .x-btn:hover {
-        background: #f2f5fa;
-        border-color: var(--border);
+        background: #f5f7fb;
+        border-color: #d9dee7;
       }
 
       .x-btn svg {
-        width: 18px;
-        height: 18px;
-        color: #2f3d52;
+        width: 28px;
+        height: 28px;
+        color: #2f3d5c;
       }
 
       .modal-body {
-        padding: 18px 26px 18px;
+        padding: 20px 28px 16px;
         background: #fff;
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
 
       .toolbar {
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 12px;
-        margin: 2px 0 14px;
+        margin-bottom: 12px;
+        flex-shrink: 0;
       }
 
-      .format {
-        display: flex;
+      .copy-mode {
+        display: inline-flex;
         align-items: center;
         gap: 12px;
-      }
-
-      .format-label {
-        font-size: 13px;
-        color: var(--muted);
-      }
-
-      .radio {
+        flex-wrap: wrap;
         font-size: 13px;
         color: var(--text);
+      }
+
+      .copy-mode-label {
+        color: var(--muted);
+        font-weight: 600;
+      }
+
+      .copy-mode-option {
         display: inline-flex;
         align-items: center;
         gap: 6px;
         user-select: none;
       }
 
-      .radio input {
-        transform: translateY(1px);
+      .content-grid {
+        flex: 1;
+        min-height: 0;
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) minmax(220px, 0.62fr);
+        gap: 14px;
       }
 
       .panel {
         border: 2px solid var(--panel-border);
         border-radius: var(--radius-md);
         background: #fff;
-        padding: 16px 16px 14px;
-      }
-
-      .panel + .panel {
-        margin-top: 16px;
+        padding: 18px 18px 14px;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
 
       .panel-header {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
         gap: 12px;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+        flex-shrink: 0;
       }
 
       .panel-title-lg {
         margin: 0;
-        font-size: 20px;
+        font-size: 19px;
         font-weight: 700;
+        letter-spacing: -0.005em;
         color: #2a374b;
       }
 
       .panel-title-sm {
         margin: 0;
         font-size: 16px;
-        font-weight: 700;
+        font-weight: 600;
+        letter-spacing: -0.003em;
         color: #2a374b;
       }
 
@@ -272,37 +314,119 @@
         border: 1px solid #d8dee9;
         border-radius: var(--radius-sm);
         background: #fff;
-        max-height: 420px;
-        overflow: auto;
-        padding: 14px;
+        padding: 22px 20px 24px;
         box-sizing: border-box;
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
       }
 
-      .summary-scroll::-webkit-scrollbar {
+      .summary-scroll::-webkit-scrollbar,
+      .comments-area::-webkit-scrollbar {
         width: 10px;
       }
 
-      .summary-scroll::-webkit-scrollbar-track {
+      .summary-scroll::-webkit-scrollbar-track,
+      .comments-area::-webkit-scrollbar-track {
         background: #eef2f6;
         border-radius: 10px;
       }
 
-      .summary-scroll::-webkit-scrollbar-thumb {
+      .summary-scroll::-webkit-scrollbar-thumb,
+      .comments-area::-webkit-scrollbar-thumb {
         background: #2f3d52;
         border-radius: 10px;
       }
 
-      .summary-scroll::-webkit-scrollbar-thumb:hover {
+      .summary-scroll::-webkit-scrollbar-thumb:hover,
+      .comments-area::-webkit-scrollbar-thumb:hover {
         background: #233043;
       }
 
-      .summary-text {
+      .summary-content {
+        max-width: 900px;
+        font-size: 18px;
+        line-height: 1.28;
+        color: #0f172a;
+      }
+
+      .summary-main-title {
+        margin: 0 0 18px 0;
+        font-size: 39px;
+        line-height: 1.02;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--heading);
+      }
+
+      .summary-block {
+        margin-top: 28px;
+      }
+
+      .summary-block:first-of-type {
+        margin-top: 0;
+      }
+
+      .summary-label {
+        font-size: 28px;
+        line-height: 1.04;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+        color: var(--heading);
+        margin: 0 0 10px 0;
+      }
+
+      .summary-subtitle {
+        font-size: 23px;
+        line-height: 1.08;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        color: #0f172a;
+      }
+
+      .summary-line {
         margin: 0;
-        white-space: pre-wrap;
-        word-break: break-word;
-        line-height: 1.35;
-        font-size: 14px;
-        font-family: var(--font-ui);
+        font-size: 18px;
+        line-height: 1.28;
+        font-weight: 400;
+        color: #0f172a;
+      }
+
+      .summary-list {
+        margin: 0;
+        padding-left: 1.6em;
+      }
+
+      .summary-list > li {
+        margin: 0 0 6px 0;
+        font-size: 18px;
+        line-height: 1.28;
+      }
+
+      .summary-list .summary-list {
+        margin-top: 8px;
+        padding-left: 1.45em;
+        list-style-type: lower-alpha;
+      }
+
+      .summary-results-group {
+        margin-top: 12px;
+      }
+
+      .summary-results-heading {
+        font-size: 20px;
+        line-height: 1.1;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+        color: #0f172a;
+      }
+
+      .questionnaire-item {
+        margin-bottom: 10px;
+      }
+
+      .questionnaire-item:last-child {
+        margin-bottom: 0;
       }
 
       .comments-area {
@@ -310,18 +434,19 @@
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
-        height: 96px;
-        min-height: 96px;
+        flex: 1;
+        min-height: 0;
         resize: none;
         border: 1px solid #d8dee9;
         border-radius: var(--radius-sm);
         padding: 12px;
         font-size: 14px;
-        line-height: 1.35;
+        line-height: 1.45;
         font-family: var(--font-ui);
         outline: none;
         background: #fff;
         color: var(--text);
+        overflow: auto;
       }
 
       .comments-area:focus {
@@ -333,12 +458,14 @@
         margin-top: 8px;
         color: var(--muted);
         font-size: 12px;
+        flex-shrink: 0;
       }
 
       .copy-small {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        justify-content: center;
+        min-width: 64px;
         padding: 8px 10px;
         border-radius: 10px;
         border: 1px solid rgba(14, 122, 149, 0.3);
@@ -366,18 +493,9 @@
         transform: none;
       }
 
-      .copy-small svg {
-        width: 16px;
-        height: 16px;
-      }
-
       .copy-small.is-copied {
         background: var(--teal-dark) !important;
         border-color: var(--teal-dark) !important;
-        color: #fff !important;
-      }
-
-      .copy-small.is-copied svg {
         color: #fff !important;
       }
 
@@ -385,6 +503,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
+        flex-wrap: wrap;
       }
 
       .save-status {
@@ -407,14 +526,16 @@
       }
 
       .modal-footer {
-        padding: 22px 26px 28px;
+        padding: 16px 26px 22px;
         display: flex;
         justify-content: center;
         background: #fff;
+        flex-shrink: 0;
       }
 
       .modal-footer .btn-primary {
         min-width: 180px;
+        width: min(240px, 100%);
       }
 
       @media (max-width: 900px) {
@@ -424,23 +545,115 @@
           padding-right: 16px;
         }
 
-        .panel-title-lg {
-          font-size: 18px;
-        }
-
         .save-status {
           min-width: 0;
           text-align: left;
         }
 
-        .toolbar {
-          flex-direction: column;
+        .page-row {
           align-items: flex-start;
         }
 
-        .page-row {
-          flex-direction: column;
-          align-items: flex-start;
+        .summary-main-title {
+          font-size: 30px;
+        }
+
+        .summary-label {
+          font-size: 22px;
+        }
+
+        .summary-subtitle {
+          font-size: 20px;
+        }
+
+        .summary-line,
+        .summary-list > li,
+        .summary-content {
+          font-size: 16px;
+        }
+
+        .summary-results-heading {
+          font-size: 18px;
+        }
+
+        .content-grid {
+          grid-template-rows: minmax(0, 1fr) minmax(200px, 0.72fr);
+        }
+      }
+
+      @media (max-width: 640px) {
+        .page {
+          padding: 16px;
+        }
+
+        .modal {
+          height: min(92vh, 900px);
+          border-radius: 14px;
+        }
+
+        .modal-header {
+          min-height: 74px;
+          padding: 0 56px 0 16px;
+          justify-content: center;
+        }
+
+        .modal-title {
+          text-align: center;
+          font-size: 20px;
+        }
+
+        .x-btn {
+          right: 12px;
+          width: 44px;
+          height: 44px;
+        }
+
+        .x-btn svg {
+          width: 24px;
+          height: 24px;
+        }
+
+        .panel {
+          padding: 14px;
+        }
+
+        .sn-right {
+          width: 100%;
+        }
+
+        .modal-footer .btn-primary {
+          width: 100%;
+        }
+
+        .summary-scroll {
+          padding: 18px 16px 20px;
+        }
+
+        .summary-main-title {
+          font-size: 24px;
+        }
+
+        .summary-label {
+          font-size: 18px;
+        }
+
+        .summary-subtitle {
+          font-size: 17px;
+        }
+
+        .summary-line,
+        .summary-list > li,
+        .summary-content {
+          font-size: 15px;
+        }
+
+        .summary-results-heading {
+          font-size: 16px;
+        }
+
+        .content-grid {
+          grid-template-rows: minmax(0, 1fr) minmax(180px, 0.8fr);
+          gap: 12px;
         }
       }
     </style>
@@ -452,7 +665,13 @@
         <div class="page-row">
           <h1 class="page-title">Portal page mock</h1>
           <div class="button-row">
-            <button class="btn-primary" type="button" id="openSessionNoteBtn">
+            <button
+              class="btn-primary"
+              type="button"
+              id="openSessionNoteBtn"
+              data-action="click->session-note#open"
+              data-session-id="demo-session"
+            >
               Open Session Note <span aria-hidden="true">›</span>
             </button>
             <button class="btn-secondary" type="button" id="clearDraftBtn">
@@ -463,6 +682,25 @@
         <p class="page-note">
           This prototype simulates your portal behavior: the modal is created fresh each time you open it, but the Additional Comments draft persists and shows Saved status.
         </p>
+      </div>
+
+      <div class="notes-card">
+        <h3>Developer Notes</h3>
+        <p><strong>Purpose</strong><br />Allow clinicians to quickly copy a session summary with optional additional notes.</p>
+        <p><strong>Key Behaviors</strong></p>
+        <ul>
+          <li>Additional Comments autosaves while typing</li>
+          <li>Copy buttons show “Copied ✓” confirmation for 2 seconds</li>
+          <li>Copy Both combines Session Summary + Additional Comments</li>
+          <li>Copy mode supports Plain text or Formatted rich text</li>
+        </ul>
+        <p><strong>Implementation Notes</strong></p>
+        <ul>
+          <li>Session Note modal triggered via Stimulus controller</li>
+          <li>Additional Comments draft should autosave to Rails backend</li>
+          <li>Formatted copy uses HTML clipboard where supported</li>
+          <li>Modal renders fresh each time it opens</li>
+        </ul>
       </div>
     </div>
 
@@ -489,20 +727,35 @@
           el.textContent = text;
         }
 
-        function applyFormat(text, mode) {
-          if (!text) return "";
-          if (mode === "asis") return text.trim();
-
-          return text
-            .replace(/\r\n/g, "\n")
-            .split("\n")
-            .map((line) => line.replace(/[ \t]+$/g, ""))
-            .join("\n")
-            .replace(/\n{3,}/g, "\n\n")
-            .trim();
+        function getCopyMode(modalRoot) {
+          const checked = modalRoot.querySelector('input[name="copy_mode"]:checked');
+          return checked ? checked.value : "plain";
         }
 
-        async function copyText(text) {
+        function escapeHtml(text) {
+          return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+        }
+
+        function commentsHtml(value) {
+          const safe = escapeHtml(value || "").replace(/\n/g, "<br>");
+          return `
+            <div style="font-family: Proxima Nova, Arial, sans-serif; color:#0f172a;">
+              <div style="font-size:39px; line-height:1.02; font-weight:700; letter-spacing:-0.02em; color:#3f4b6b; margin:0 0 18px 0;">
+                Additional Comments
+              </div>
+              <div style="font-size:18px; line-height:1.45; color:#0f172a;">
+                ${safe || ""}
+              </div>
+            </div>
+          `;
+        }
+
+        async function copyPlainText(text) {
           const cleaned = (text || "").trim();
           if (!cleaned) return false;
 
@@ -521,6 +774,32 @@
             document.body.removeChild(ta);
             return ok;
           }
+        }
+
+        async function copyRichText(html, plainText) {
+          const cleanedText = (plainText || "").trim();
+          if (!cleanedText) return false;
+
+          try {
+            if (navigator.clipboard && window.ClipboardItem) {
+              const item = new ClipboardItem({
+                "text/html": new Blob([html], { type: "text/html" }),
+                "text/plain": new Blob([cleanedText], { type: "text/plain" })
+              });
+              await navigator.clipboard.write([item]);
+              return true;
+            }
+          } catch (e) {}
+
+          return copyPlainText(cleanedText);
+        }
+
+        async function copyByMode(modalRoot, plainText, html) {
+          const mode = getCopyMode(modalRoot);
+          if (mode === "formatted" && html) {
+            return copyRichText(html, plainText);
+          }
+          return copyPlainText(plainText);
         }
 
         function flashCopied(button, originalText, reenableFn) {
@@ -555,126 +834,207 @@
 
                   <button type="button" class="x-btn" aria-label="Close" data-close>
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" />
                     </svg>
                   </button>
                 </div>
 
                 <div class="modal-body">
                   <div class="toolbar">
-                    <div class="format" role="group" aria-label="Copy format toggle">
-                      <span class="format-label">Copy format:</span>
-                      <label class="radio">
-                        <input type="radio" name="copy_format" value="asis" checked>
-                        As-is
+                    <div class="copy-mode" role="group" aria-label="Copy mode">
+                      <span class="copy-mode-label">Copy as:</span>
+                      <label class="copy-mode-option">
+                        <input type="radio" name="copy_mode" value="plain" checked>
+                        Plain text
                       </label>
-                      <label class="radio">
-                        <input type="radio" name="copy_format" value="formatted">
+                      <label class="copy-mode-option">
+                        <input type="radio" name="copy_mode" value="formatted">
                         Formatted
                       </label>
                     </div>
                   </div>
 
-                  <div class="panel">
-                    <div class="panel-header">
-                      <h3 class="panel-title-lg">Session Summary</h3>
-
-                      <button type="button" class="copy-small" data-copy-button="summary" aria-label="Copy session summary">
-                        Copy
-                      </button>
-                    </div>
-
-                    <div class="summary-scroll" data-copy-source="summary">
-                      <pre class="summary-text">Session Summary
-Patient Details
-Patient ID: dementia test 6 task
-
-Date of Birth: 1950/01/01
-
-Comparative Group: Males, 75+
-
-Assessment Details
-Date Administered: 2025/04/30
-
-Date Completed: 2025/04/30
-
-Duration: 12 minutes
-
-Administration Method: In Person
-
-Provider Details
-Provider Name: neta.benor+general@creyos.com
-
-Organization: Neta General Customer Test
-
-Assessments Administered
-MCI-Focused Protocol
-Attention
-Episodic Memory
-Response Inhibition
-Visual Spatial Working Memory
-Mental Rotation
-Verbal Short-Term Memory
-Self-Reported Informant Questionnaire on Cognitive Decline in the Elderly
-Patient Health Questionnaire (PHQ-9)
-General Anxiety Disorder (GAD-7)
-Instrumental Activities of Daily Living (IADL)
-MCI-Focused Protocol
-Summary
-Objective cognitive impairment detected and functional dependency reported
-Neurocognitive Assessment Outcome
-Objective impairment detected
-Functional Dependence Outcome
-Functional dependency reported
-Subjective Cognitive Decline Outcome
-No subjective cognitive decline reported
-Neuropsychiatric Assessment Outcome
-Anxiety and Depression symptoms reported
-Cognitive Assessment Results
-Below Average Range
-Attention - Standard score of 72, 3rd percentile, below the average range.
-Episodic Memory - Standard score of 62, 0th percentile, below the average range.
-Response Inhibition - Standard score of 84, 15th percentile, below the average range.
-Visual Spatial Working Memory - Standard score of 57, 0th percentile, below the average range.
-Mental Rotation - Standard score of 83, 13th percentile, below the average range.
-Verbal Short Term Memory - Standard score of 54, 0th percentile, below the average range.
-Questionnaire Results
-Self-Reported Informant Questionnaire on Cognitive Decline in the Elderly - Averaged score of 2.94 was recorded, which is below the threshold of 3.22. This score is not indicative of subjective cognitive decline
-Patient Health Questionnaire (PHQ-9) - Score of 17 was recorded, which meets the threshold of 15. This score is indicative of moderately severe depression symptoms
-General Anxiety Disorder (GAD-7) - Score of 10 was recorded, which meets the threshold of 10. This score is indicative of moderate anxiety symptoms
-Instrumental Activities of Daily Living (IADL) - Score of 3 was recorded, which is below the threshold of 5. This score is indicative of low function, dependence</pre>
-                    </div>
-
-                    <div class="hint">Copy copies only the session summary text.</div>
-                  </div>
-
-                  <div class="panel">
-                    <div class="panel-header">
-                      <h3 class="panel-title-sm">Additional Comments</h3>
-
-                      <div class="sn-right">
-                        <span class="save-status" data-save-status>Not saved yet</span>
-
-                        <button
-                          type="button"
-                          class="copy-small"
-                          data-copy-button="comments"
-                          aria-label="Copy additional comments"
-                          disabled
-                        >
-                          Copy
-                        </button>
+                  <div class="content-grid">
+                    <div class="panel">
+                      <div class="panel-header">
+                        <h3 class="panel-title-lg">Session Summary</h3>
+                        <button type="button" class="copy-small" data-copy-button="summary">Copy</button>
                       </div>
+
+                      <div class="summary-scroll" data-copy-source="summary">
+                        <div class="summary-content">
+                          <h4 class="summary-main-title">Session Summary</h4>
+
+                          <div class="summary-block">
+                            <div class="summary-subtitle">Patient Details</div>
+                            <p class="summary-line">Patient ID: all tasks and questionnaires</p>
+                            <p class="summary-line">Date of Birth: 1998/09/03</p>
+                            <p class="summary-line">Comparative Group: Females, 18-24</p>
+                          </div>
+
+                          <div class="summary-block">
+                            <div class="summary-subtitle">Assessment Details</div>
+                            <p class="summary-line">Date Administered: 2022/11/04</p>
+                            <p class="summary-line">Date Completed: 2022/11/04</p>
+                            <p class="summary-line">Duration: 27 minutes</p>
+                            <p class="summary-line">Administration Method: In Person</p>
+                          </div>
+
+                          <div class="summary-block">
+                            <div class="summary-subtitle">Provider Details</div>
+                            <p class="summary-line">Provider Name: Neta Benor</p>
+                            <p class="summary-line">Organization: neta ben or</p>
+                          </div>
+
+                          <div class="summary-block">
+                            <div class="summary-label">Assessments Administered</div>
+                            <ol class="summary-list">
+                              <li>
+                                Custom protocol
+                                <ol class="summary-list">
+                                  <li>Visual Spatial Working Memory</li>
+                                  <li>Spatial Short Term Memory</li>
+                                  <li>Working Memory</li>
+                                  <li>Episodic Memory</li>
+                                  <li>Mental Rotation</li>
+                                  <li>Visuospatial Processing</li>
+                                  <li>Deductive Reasoning</li>
+                                  <li>Planning</li>
+                                  <li>Verbal Reasoning</li>
+                                  <li>Verbal Short Term Memory</li>
+                                  <li>Attention</li>
+                                  <li>Response Inhibition</li>
+                                </ol>
+                              </li>
+                              <li>PHQ-9</li>
+                              <li>GAD-7</li>
+                              <li>ASRS</li>
+                              <li>PSS</li>
+                              <li>RPQ</li>
+                              <li>PCL-5</li>
+                              <li>VADRS</li>
+                              <li>AQ</li>
+                              <li>DAST-10</li>
+                              <li>AUDIT</li>
+                              <li>IADL</li>
+                              <li>MDQ</li>
+                            </ol>
+                          </div>
+
+                          <div class="summary-block">
+                            <div class="summary-label">Cognitive Assessment Results</div>
+
+                            <div class="summary-results-group">
+                              <div class="summary-results-heading">Below Average Range</div>
+                              <ul class="summary-list">
+                                <li>Episodic Memory - Standard score of 83, 12th percentile, below the average range.</li>
+                                <li>Verbal Short Term Memory - Standard score of 84, 14th percentile, below the average range.</li>
+                              </ul>
+                            </div>
+
+                            <div class="summary-results-group">
+                              <div class="summary-results-heading">Within Average Range</div>
+                              <ul class="summary-list">
+                                <li>Visual Spatial Working Memory - Standard score of 93, 34th percentile, within the average range.</li>
+                                <li>Spatial Short Term Memory - Standard score of 96, 40th percentile, within the average range.</li>
+                                <li>Working Memory - Standard score of 88, 22nd percentile, within the average range.</li>
+                                <li>Mental Rotation - Standard score of 95, 38th percentile, within the average range.</li>
+                                <li>Visuospatial Processing - Standard score of 97, 43rd percentile, within the average range.</li>
+                                <li>Deductive Reasoning - Standard score of 95, 38th percentile, within the average range.</li>
+                                <li>Verbal Reasoning - Standard score of 95, 38th percentile, within the average range.</li>
+                                <li>Attention - Standard score of 94, 34th percentile, within the average range.</li>
+                                <li>Response Inhibition - Standard score of 88, 21st percentile, within the average range.</li>
+                              </ul>
+                            </div>
+
+                            <div class="summary-results-group">
+                              <div class="summary-results-heading">Above Average Range</div>
+                              <ul class="summary-list">
+                                <li>Planning - Standard score of 117, 88th percentile, above the average range.</li>
+                              </ul>
+                            </div>
+                          </div>
+
+                          <div class="summary-block">
+                            <div class="summary-label">Questionnaire Results</div>
+                            <div class="questionnaire-item">
+                              <p class="summary-line">Patient Health Questionnaire (PHQ-9) - Score of 18 was recorded, which meets the threshold of 15. This score is indicative of moderately severe depression symptoms</p>
+                            </div>
+                            <div class="questionnaire-item">
+                              <p class="summary-line">General Anxiety Disorder (GAD-7) - Score of 6 was recorded, which meets the threshold of 5. This score is indicative of mild anxiety symptoms</p>
+                            </div>
+                            <div class="questionnaire-item">
+                              <p class="summary-line">Adult ADHD Self-Report Scale (ASRS) - Score of 4 was recorded, which meets the threshold of 4. This score is indicative of symptoms that may be consistent with ADHD</p>
+                            </div>
+                            <div class="questionnaire-item">
+                              <p class="summary-line">Perceived Stress Scale (PSS) - Score of 19 was recorded, which meets the threshold of 14. This score is indicative of symptoms consistent with moderate perceived stress</p>
+                            </div>
+                            <div class="questionnaire-item">
+                              <p class="summary-line">Rivermead Post-Concussion Symptoms Questionnaire - Score of 46 was recorded, which meets the threshold of 36. This score is indicative of post-concussion syndrome and predictive of moderate to severe limitations in abilities</p>
+                            </div>
+                            <div class="questionnaire-item">
+                              <p class="summary-line">PTSD Checklist for DSM-5 (PCL-5) - Score of 52 was recorded, which meets the threshold of 34. This score is indicative of significant likelihood of PTSD, this patient may benefit from PTSD treatment</p>
+                            </div>
+                            <div class="questionnaire-item">
+                              <p class="summary-line" style="margin-bottom:8px;">Vanderbilt ADHD Diagnostic Rating Scale (VADRS)</p>
+                              <ul class="summary-list">
+                                <li>Performance: 5 of the performance behaviors were reported as 'Somewhat of a problem' or 'Problematic', which meets the threshold of 1 of 8 behaviors required to indicate performance impairment by the conditions below.</li>
+                                <li>ADHD, predominantly inattentive subtype: 8 of 9 inattentive behaviors were reported to occur 'Often' or 'Very often', which meets the threshold of at least 6 behaviors flagged for this disorder. Therefore, these results, along with the impaired performance, are indicative of the inattentive subtype of ADHD.</li>
+                                <li>ADHD, predominantly hyperactive/impulsive subtype: 4 of 9 hyperactive/impulsive behaviors were reported to occur 'Often' or 'Very often', which does not meet the threshold of at least 6 behaviors flagged for this disorder. Therefore, these results are not indicative of the hyperactive/impulsive subtype of ADHD.</li>
+                                <li>Oppositional-Defiant Disorder: 8 of 8 behaviors associated with oppositional-defiant disorder were reported to occur 'Often' or 'Very often', which meets the threshold of at least 4 behaviors flagged for this disorder. Therefore, these results, along with the impaired performance, are indicative of oppositional-defiant disorder.</li>
+                                <li>Conduct disorder: 14 of 14 behaviors associated with conduct disorder were reported to occur 'Often' or 'Very often', which meets the threshold of at least 3 behaviors flagged for this disorder. Therefore, these results, along with the impaired performance, are indicative of conduct disorder.</li>
+                                <li>Anxiety/depression: 6 of 7 behaviors associated with anxiety/depression were reported to occur 'Often' or 'Very often', which meets the threshold of at least 3 behaviors flagged for this disorder. Therefore, these results, along with the impaired performance, are indicative of anxiety/depression.</li>
+                              </ul>
+                            </div>
+                            <div class="questionnaire-item">
+                              <p class="summary-line">Autism Spectrum Quotient (AQ) - Score of 24 was recorded, which is below the threshold of 26. This score is indicative of no markers or symptoms of autism</p>
+                            </div>
+                            <div class="questionnaire-item">
+                              <p class="summary-line">Drug Abuse Screen Test (DAST-10) - Score of 6 was recorded, which meets the threshold of 6. This score is indicative of a substantial level of problems reported that relate to drug abuse</p>
+                            </div>
+                            <div class="questionnaire-item">
+                              <p class="summary-line">Alcohol Use Disorders Identification Test (AUDIT) - Score of 23 was recorded, which meets the threshold of 15. This score is indicative of the likelihood of alcohol dependence</p>
+                            </div>
+                            <div class="questionnaire-item">
+                              <p class="summary-line">Instrumental Activities of Daily Living (IADL) - Score of 3 was recorded, which is below the threshold of 8. This score is indicative of low function, dependence</p>
+                            </div>
+                            <div class="questionnaire-item">
+                              <p class="summary-line">Mood Disorder Questionnaire (MDQ) - Score of 4 was recorded, which is below the threshold of 7. Co-occurring symptoms were not reported. Symptoms were reported to cause "moderate problems". This score is not indicative of Bipolar Spectrum Disorder.</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="hint">Copy copies only the session summary section.</div>
                     </div>
 
-                    <textarea
-                      class="comments-area"
-                      rows="4"
-                      placeholder="Add any additional context you’d like to copy into notes…"
-                      data-comments-input
-                    ></textarea>
+                    <div class="panel">
+                      <div class="panel-header">
+                        <h3 class="panel-title-sm">Additional Comments</h3>
 
-                    <div class="hint">Autosaves as you type. Reopening the modal shows the last saved draft.</div>
+                        <div class="sn-right">
+                          <span class="save-status" data-save-status>Not saved yet</span>
+                          <button type="button" class="copy-small" data-clear-comments>Clear</button>
+                          <button
+                            type="button"
+                            class="copy-small"
+                            data-copy-button="comments"
+                            disabled
+                          >
+                            Copy
+                          </button>
+                        </div>
+                      </div>
+
+                      <textarea
+                        class="comments-area"
+                        rows="4"
+                        placeholder="Add any additional context you’d like to copy into notes…"
+                        data-comments-input
+                      ></textarea>
+
+                      <div class="hint">Autosaves as you type. Reopening the modal shows the last saved draft.</div>
+                    </div>
                   </div>
                 </div>
 
@@ -688,25 +1048,23 @@ Instrumental Activities of Daily Living (IADL) - Score of 3 was recorded, which 
           `;
         }
 
-        function getCopyMode(modalRoot) {
-          const formatted = modalRoot.querySelector('input[name="copy_format"][value="formatted"]');
-          return formatted && formatted.checked ? "formatted" : "asis";
-        }
-
         function wireModal(modalRoot) {
           const overlay = modalRoot.querySelector(".overlay");
           const closeButtons = modalRoot.querySelectorAll("[data-close]");
-
           const summarySource = modalRoot.querySelector('[data-copy-source="summary"]');
           const commentsInput = modalRoot.querySelector("[data-comments-input]");
           const statusEl = modalRoot.querySelector("[data-save-status]");
-
           const summaryBtn = modalRoot.querySelector('[data-copy-button="summary"]');
           const commentsBtn = modalRoot.querySelector('[data-copy-button="comments"]');
           const bothBtn = modalRoot.querySelector('[data-copy-button="both"]');
+          const clearBtn = modalRoot.querySelector("[data-clear-comments]");
 
           function summaryText() {
             return (summarySource?.innerText || "").trim();
+          }
+
+          function summaryHtml() {
+            return summarySource.innerHTML;
           }
 
           function commentsTextTrimmed() {
@@ -753,29 +1111,48 @@ Instrumental Activities of Daily Living (IADL) - Score of 3 was recorded, which 
             });
           }
 
+          if (clearBtn && commentsInput) {
+            clearBtn.addEventListener("click", () => {
+              commentsInput.value = "";
+              localStorage.setItem(STORAGE_KEY, "");
+              syncButtons();
+              setSaveStatus(statusEl, "is-saved", `Saved ✓ ${nowTime()}`);
+            });
+          }
+
           syncButtons();
 
           if (summaryBtn && summarySource) {
             summaryBtn.addEventListener("click", async () => {
-              const mode = getCopyMode(modalRoot);
-              const ok = await copyText(applyFormat(summaryText(), mode));
+              const ok = await copyByMode(modalRoot, summaryText(), summaryHtml());
               if (ok) flashCopied(summaryBtn, "Copy");
             });
           }
 
           if (commentsBtn && commentsInput) {
             commentsBtn.addEventListener("click", async () => {
-              const mode = getCopyMode(modalRoot);
-              const ok = await copyText(applyFormat(commentsInput.value, mode));
+              const text = commentsInput.value;
+              const html = commentsHtml(text);
+              const ok = await copyByMode(modalRoot, text, html);
               if (ok) flashCopied(commentsBtn, "Copy", syncButtons);
             });
           }
 
           if (bothBtn && commentsInput) {
             bothBtn.addEventListener("click", async () => {
-              const mode = getCopyMode(modalRoot);
-              const combined = `${summaryText()}\n\nAdditional Comments\n${commentsInput.value || ""}`;
-              const ok = await copyText(applyFormat(combined, mode));
+              const summaryPlain = summaryText();
+              const commentsPlain = commentsInput.value || "";
+              const combinedPlain = `${summaryPlain}\n\nAdditional Comments\n${commentsPlain}`;
+
+              const combinedHtml = `
+                <div style="font-family: Proxima Nova, Arial, sans-serif; color:#0f172a;">
+                  ${summaryHtml()}
+                  <div style="height:24px;"></div>
+                  ${commentsHtml(commentsPlain)}
+                </div>
+              `;
+
+              const ok = await copyByMode(modalRoot, combinedPlain, combinedHtml);
               if (ok) flashCopied(bothBtn, "Copy both", syncButtons);
             });
           }
